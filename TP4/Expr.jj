@@ -1,0 +1,104 @@
+/*
+ *
+ *       Auteur: Pedrono Marie-Jo
+ *
+ * 	création : 25 janvier 2009
+ *
+ *     nature : projet etudiant
+ *
+ */
+
+
+PARSER_BEGIN(Expr)
+
+public class Expr {
+ 
+  public static void main(String args[]) { 
+    Expr analyseur;
+    java.io.InputStream input;
+
+    if (args.length==1) {
+      System.out.print(args[args.length-1] + ": ");
+      try {
+        input = new java.io.FileInputStream(args[args.length-1]);
+      } catch (java.io.FileNotFoundException e) {
+        System.out.println("Fichier introuvable.");
+        return;
+      }
+    } else if (args.length==0) {
+      System.out.println("Lecture sur l'entree standard...");
+      input = System.in;
+    } else {
+      System.out.println("Usage: java Expr[fichier]");
+      return;
+    }
+    try {
+
+      analyseur = new Expr(input);
+      analyseur.expr();
+      System.out.println("analyse reussie!");
+    } catch (ParseException e) {
+      String msg = e.getMessage();
+      msg = msg.substring(0,msg.indexOf("\n"));
+      System.out.println("Erreur de syntaxe : "+msg);
+    }
+  } 
+}
+
+PARSER_END(Expr)
+/***************************************/
+/********** TOKEN DEFINITIONS **********/
+/***************************************/
+
+TOKEN_MGR_DECLS :
+{public static String identLu,chaineLue;
+ public static int entierLu;}
+
+/*** Skip whitespace and comments ***/
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| "(*"   : IN_COMMENT
+}
+<IN_COMMENT> MORE:
+{
+  < ~[] >
+}
+<IN_COMMENT> SKIP:
+{
+   < "*)" >  {SwitchTo(DEFAULT);} 
+}
+
+
+
+/*** unites de base nombres, idents,  strings ***/
+TOKEN  :
+{
+  < #chiffre : ["0"-"9"] >
+| < entier : (<chiffre>)+ > 
+	{ entierLu = Integer.parseInt(image.toString());
+        }
+| < #lettre: ["A"-"Z","a"-"z"] >
+| < ident : <lettre> (<lettre> | <chiffre>)* >
+	{identLu =image.toString();	
+	}
+| < chaine : "\"" (~["\""])* "\"" | "'" (~["'"])* "'" >
+	{ chaineLue = image.toString();
+	 }
+}
+
+
+/**************************************/
+/********debut de la grammaire ********/
+/**************************************/
+
+void expr() : {}
+{
+   terme() (opAdd() terme() )*
+} 
+void terme() : {}
+{
+}

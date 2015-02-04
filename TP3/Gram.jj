@@ -1,0 +1,90 @@
+
+
+options {
+LOOKAHEAD=1;
+}
+
+PARSER_BEGIN(Gram)
+
+public class Gram {
+  public static void main(String args[]) { 
+    Gram parser;
+    java.io.InputStream input;
+
+    if (args.length==1) {
+      System.out.print(args[args.length-1] + ": ");
+      try {
+        input = new java.io.FileInputStream(args[args.length-1]);
+      } catch (java.io.FileNotFoundException e) {
+        System.out.println("Fichier introuvable.");
+        return;
+      }
+    } else if (args.length==0) {
+      System.out.println("Lecture sur l'entree standard...");
+      input = System.in;
+    } else {
+      System.out.println("Usage: java Gram [fichier]");
+      return;
+    }
+    try {
+
+
+      parser = new Gram(input);
+      parser.document();
+      System.out.println("analyse reussie!");
+    } catch (ParseException e) {
+      String msg = e.getMessage();
+      msg = msg.substring(0,msg.indexOf("\n"));
+      System.out.println("Erreur de syntaxe : "+msg);
+    }
+  } 
+}
+
+PARSER_END(Gram)
+
+TOKEN_MGR_DECLS :
+{
+  public static int entierLu;
+  public static String identLu;
+ 
+}
+
+SKIP :
+{
+ 	" "
+  |	"\r"
+  |	"\t"
+  |	"\n"
+}
+
+TOKEN :
+{
+ <DOC : "doc">
+| <FINDOC : "findoc">
+| <TITRE : "titre">
+| <FINTITRE : "fintitre">
+| <DATE : "date">
+| <FINDATE : "findate">
+| <PARA : "para">
+| <FINPARA : "finpara">
+}
+
+TOKEN :
+{
+    < ENTIER: ( <CHIFFRE> )+ >
+	{entierLu = Integer.parseInt(image.toString());
+        }
+|   < CHIFFRE: ["0" - "9"] >
+|   < IDENT: (<LETTRE>)+ >{identLu =image.toString();}
+|   < LETTRE: ["A"-"Z","a"-"z"] >
+}
+
+void document() :{}
+{
+ <DOC>   titre() date() paragraphe() suitePara() <FINDOC>
+}
+
+}
+
+
+
